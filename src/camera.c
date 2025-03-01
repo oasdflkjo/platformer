@@ -1,7 +1,6 @@
+#include "pch.h" // Use the precompiled header
 #include "camera.h"
 #include "character.h" // Include the character header
-#include <GLFW/glfw3.h>
-#include <cglm/cglm.h> // Include GLM
 
 extern Character player; // Reference to the player character
 
@@ -12,8 +11,6 @@ void initCamera() {
 
 // Function to update the camera position
 void updateCamera() {
-    glLoadIdentity(); // Reset the current model-view matrix
-
     // Define camera parameters
     vec3 eye = {player.x, player.y + 5.0f, player.z + 5.0f};
     vec3 center = {player.x, player.y, player.z};
@@ -23,8 +20,7 @@ void updateCamera() {
     mat4 view;
     glm_lookat(eye, center, up, view);
 
-    // Apply view matrix
-    glMultMatrixf((float*)view);
+    // We'll use this view matrix in the shader instead of calling glMultMatrixf
 }
 
 // Function to apply camera transformations for rendering

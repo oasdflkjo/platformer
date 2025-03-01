@@ -16,7 +16,8 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 file(GLOB_RECURSE SOURCES 
     "src/*.c"
     "src/*.cpp"
-    "src/glb_loader.c"
+    "src/shader.c"
+    "src/model.c"
 )
 
 # Find all header files (optional, but good for IDE support)
@@ -82,3 +83,6 @@ target_link_libraries(main PRIVATE
 set_target_properties(main PROPERTIES 
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+
+# Make sure to copy shader files to the build directory
+file(COPY assets/shaders DESTINATION ${CMAKE_SOURCE_DIR}/assets)

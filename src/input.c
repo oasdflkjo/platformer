@@ -1,6 +1,7 @@
 // input.c
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <GLFW/glfw3.h>
 #include "input.h"
 
@@ -56,5 +57,41 @@ void debugPrintJoystickInputs(int joystick) {
         }
     } else {
         // printf("Joystick not present.\n"); // Removed print statement
+    }
+}
+
+void handle_input() {
+    // existing input handling...
+
+    // Comment out or remove the animation input handling if not needed
+    // if (isKeyPressed(KEY_ANIMATION)) {
+    //     trigger_character_animation();
+    // }
+
+    // existing input handling...
+}
+
+// Add this function to check if a specific button is pressed
+bool isButtonPressed(int buttonID) {
+    int count;
+    const unsigned char* buttons = getJoystickButtons(GLFW_JOYSTICK_1, &count);
+    
+    if (buttonID < count) {
+        return buttons[buttonID] == 1;
+    }
+    
+    return false;
+}
+
+// Add this function to help debug controller buttons
+void debugControllerButtons() {
+    int count;
+    const unsigned char* buttons = getJoystickButtons(GLFW_JOYSTICK_1, &count);
+    
+    // Print all pressed buttons
+    for (int i = 0; i < count; i++) {
+        if (buttons[i] == 1) {
+            printf("Button %d is pressed\n", i);
+        }
     }
 }
