@@ -17,8 +17,8 @@ file(GLOB_RECURSE SOURCES
 
 # Find all header files (optional, but good for IDE support)
 file(GLOB_RECURSE HEADERS
-    "include/*.h"
-    "include/*.hpp"
+    "inc/*.h"
+    "inc/*.hpp"
 )
 
 # Add GLFW
@@ -56,7 +56,7 @@ add_executable(main ${SOURCES} ${HEADERS})
 
 # Set include directories
 target_include_directories(main PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/inc
     ${CMAKE_SOURCE_DIR}/external/imgui
     ${CMAKE_SOURCE_DIR}/external/imgui/backends
     ${CMAKE_SOURCE_DIR}/external/glfw/include
