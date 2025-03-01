@@ -1,6 +1,7 @@
 // input.c
 
 #include <stdio.h>
+#include <GLFW/glfw3.h>
 #include "input.h"
 
 // Store the window reference
@@ -27,13 +28,13 @@ int isKeyPressed(int key) {
 }
 
 // Check if a joystick is present
-int isJoystickPresent(int joystick) {
-    return glfwJoystickPresent(joystick);
+int isControllerConnected() {
+    return glfwJoystickPresent(GLFW_JOYSTICK_1);
 }
 
 // Get joystick axes
-const float* getJoystickAxes(int joystick, int* count) {
-    return glfwGetJoystickAxes(joystick, count);
+const float* getControllerAxes(int* count) {
+    return glfwGetJoystickAxes(GLFW_JOYSTICK_1, count);
 }
 
 // Get joystick buttons
@@ -43,7 +44,7 @@ const unsigned char* getJoystickButtons(int joystick, int* count) {
 
 // Debug print for joystick inputs
 void debugPrintJoystickInputs(int joystick) {
-    if (isJoystickPresent(joystick)) {
+    if (isControllerConnected()) {
         int buttonCount;
         const unsigned char* buttons = getJoystickButtons(joystick, &buttonCount);
 
@@ -54,6 +55,6 @@ void debugPrintJoystickInputs(int joystick) {
             }
         }
     } else {
-        // printf("Joystick %d not present.\n", joystick); // Removed print statement
+        // printf("Joystick not present.\n"); // Removed print statement
     }
 }

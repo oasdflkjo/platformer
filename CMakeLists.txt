@@ -9,10 +9,14 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Add this line to suppress deprecation warnings
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+
 # Find all source files using wildcards
 file(GLOB_RECURSE SOURCES 
     "src/*.c"
     "src/*.cpp"
+    "src/glb_loader.c"
 )
 
 # Find all header files (optional, but good for IDE support)
@@ -62,6 +66,7 @@ target_include_directories(main PRIVATE
     ${CMAKE_SOURCE_DIR}/external/glfw/include
     ${CMAKE_SOURCE_DIR}/external/glad/include
     ${CMAKE_SOURCE_DIR}/external/cglm/include
+    ${CMAKE_SOURCE_DIR}/external/cgltf
 )
 
 # Link all libraries in one command

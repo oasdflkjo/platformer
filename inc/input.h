@@ -5,14 +5,12 @@
 
 #include <GLFW/glfw3.h>
 
-// Initialize input system
+// Function declarations
 void initInput(GLFWwindow* window);
-
-// Update input states
 void updateInput();
-
-// Check if a specific key is pressed
 int isKeyPressed(int key);
+int isControllerConnected();
+const float* getControllerAxes(int* count);
 
 // Check if a joystick is present
 int isJoystickPresent(int joystick);
