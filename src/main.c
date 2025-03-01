@@ -44,7 +44,7 @@ int main() {
     initInput(window);
     
     // Initialize world
-    initWorld();
+    initWorld(window);
     
     // Timing variables
     const double fixedTimeStep = 1.0 / 60.0;

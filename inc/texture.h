@@ -17,4 +17,7 @@ unsigned int create_test_texture();
 
 // Note: load_texture is now defined in texture_loader.h/c
 
+// Add this declaration if it's missing from texture.h
+unsigned int texture_load(const char* path);
+
 #endif // TEXTURE_H 
