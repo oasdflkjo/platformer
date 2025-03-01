@@ -21,4 +21,7 @@ void shader_set_float(Shader* shader, const char* name, float value);
 void shader_set_vec3(Shader* shader, const char* name, vec3 value);
 void shader_set_mat4(Shader* shader, const char* name, mat4 value);
 
+// Add this function declaration
+void shader_get_mat4(Shader* shader, const char* name, mat4 dest);
+
 #endif 

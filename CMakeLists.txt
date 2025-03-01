@@ -16,8 +16,6 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 file(GLOB_RECURSE SOURCES 
     "src/*.c"
     "src/*.cpp"
-    "src/shader.c"
-    "src/model.c"
 )
 
 # Find all header files (optional, but good for IDE support)
@@ -68,6 +66,7 @@ target_include_directories(main PRIVATE
     ${CMAKE_SOURCE_DIR}/external/glad/include
     ${CMAKE_SOURCE_DIR}/external/cglm/include
     ${CMAKE_SOURCE_DIR}/external/cgltf
+    ${CMAKE_SOURCE_DIR}/external/stb
 )
 
 # Link all libraries in one command

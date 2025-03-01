@@ -8,6 +8,10 @@
 // Store the window reference
 static GLFWwindow* g_window = NULL;
 
+// Add these global variables to track button states
+static bool currentButtonStates[16] = {false};
+static bool previousButtonStates[16] = {false};
+
 // Initialize input system
 void initInput(GLFWwindow* window) {
     g_window = window;
@@ -16,6 +20,20 @@ void initInput(GLFWwindow* window) {
 
 // Update input states
 void updateInput() {
+    // Store previous button states
+    for (int i = 0; i < 16; i++) {
+        previousButtonStates[i] = currentButtonStates[i];
+    }
+    
+    // Update current button states
+    int count;
+    const unsigned char* buttons = getJoystickButtons(GLFW_JOYSTICK_1, &count);
+    if (buttons && count > 0) {
+        for (int i = 0; i < count && i < 16; i++) {
+            currentButtonStates[i] = buttons[i] == GLFW_PRESS;
+        }
+    }
+    
     // Poll for and process events
     glfwPollEvents();
 }
@@ -76,22 +94,41 @@ bool isButtonPressed(int buttonID) {
     int count;
     const unsigned char* buttons = getJoystickButtons(GLFW_JOYSTICK_1, &count);
     
-    if (buttonID < count) {
-        return buttons[buttonID] == 1;
+    if (!buttons) {
+        return false;
     }
     
-    return false;
+    if (buttonID < 0 || buttonID >= count) {
+        // printf("Invalid button ID: %d (max: %d)\n", buttonID, count-1);
+        return false;
+    }
+    
+    return buttons[buttonID] == 1;
 }
 
-// Add this function to help debug controller buttons
+// Comment out or simplify the debug functions
 void debugControllerButtons() {
-    int count;
-    const unsigned char* buttons = getJoystickButtons(GLFW_JOYSTICK_1, &count);
-    
-    // Print all pressed buttons
-    for (int i = 0; i < count; i++) {
-        if (buttons[i] == 1) {
-            printf("Button %d is pressed\n", i);
-        }
+    // Debug function disabled
+}
+
+void debugAllControllerButtons() {
+    // Debug function disabled
+}
+
+// Check if a button was just pressed this frame (pressed now but not in previous frame)
+bool isButtonJustPressed(int button) {
+    if (button < 0 || button >= 16) {
+        return false; // Invalid button ID
     }
+    
+    return currentButtonStates[button] && !previousButtonStates[button];
+}
+
+// Check if a button was just released this frame (not pressed now but was in previous frame)
+bool isButtonJustReleased(int button) {
+    if (button < 0 || button >= 16) {
+        return false; // Invalid button ID
+    }
+    
+    return !currentButtonStates[button] && previousButtonStates[button];
 }
