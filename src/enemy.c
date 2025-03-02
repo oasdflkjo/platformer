@@ -310,4 +310,6 @@ bool is_enemy_active(int index) {
         return enemies[index].active;
     }
     return false;
-} 
+}
+
+// Optimize collision detection to avoid checking inactive enemies 
