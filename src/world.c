@@ -12,6 +12,10 @@
 #include "character_animation.h"
 #include "projectile.h"
 #include "enemy.h"
+#include "logging.h"
+
+// Define this module for logging
+LOG_MODULE_DEFINE(__FILE__, false);
 
 // Add this function declaration at the top of the file, after the includes
 void debugRenderingIssue(void);
@@ -105,7 +109,6 @@ void initWorld(GLFWwindow* win) {
     lastFrameTime = glfwGetTime();
     
     // Ensure viewport covers the entire window
-    // (This should be set by your main rendering loop, but let's make sure)
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
@@ -114,14 +117,14 @@ void initWorld(GLFWwindow* win) {
     glDisable(GL_SCISSOR_TEST);
     
     // Debug OpenGL state after initialization
-    printf("After initialization:\n");
+    LOG("After initialization:");
     debugRenderingIssue();
     
     // Check if scissor test is enabled and disable it if it is
     GLboolean scissorEnabled;
     glGetBooleanv(GL_SCISSOR_TEST, &scissorEnabled);
     if (scissorEnabled) {
-        printf("Disabling scissor test that was enabled by default\n");
+        LOG("Disabling scissor test that was enabled by default");
         glDisable(GL_SCISSOR_TEST);
     }
     
@@ -131,7 +134,7 @@ void initWorld(GLFWwindow* win) {
 
     // Spawn a test enemy at a fixed position
     spawn_enemy(2.0f, GROUND_LEVEL, 2.0f);
-    printf("Spawned test enemy at (2.0, %.2f, 2.0)\n", GROUND_LEVEL);
+    LOG("Spawned test enemy at (2.0, %.2f, 2.0)", GROUND_LEVEL);
 }
 
 // Function to update the game world
@@ -205,14 +208,14 @@ void updateWorld() {
         if (isButtonPressed(BUTTON_SQUARE) || isButtonPressed(BUTTON_CIRCLE)) {
             isAttacking = true;
             player.attackCooldown = 0.5f; // Set cooldown time
-            printf("Attack triggered! Button: %s\n", 
+            LOG("Attack triggered! Button: %s", 
                    isButtonPressed(BUTTON_SQUARE) ? "Square" : "Circle");
         }
         // Secondary attack (Triangle)
         else if (isButtonPressed(BUTTON_TRIANGLE)) {
             isAttacking = true;
             player.attackCooldown = 0.5f; // Set cooldown time
-            printf("Spinning dagger attack triggered!\n");
+            LOG("Spinning dagger attack triggered!");
             
             // Enable orbit mode for projectiles
             set_projectile_orbit_mode(true);
@@ -248,7 +251,7 @@ void updateWorld() {
             // For other attack buttons (sword attack), use attack animation
             if (!player.isGrounded) {
                 newState = CHARACTER_STATE_AIR_ATTACK;
-                printf("Air attack triggered!\n");
+                LOG("Air attack triggered!");
             } else {
                 newState = CHARACTER_STATE_ATTACK;
             }
@@ -315,7 +318,7 @@ void updateWorld() {
         // Set spawn timer for first batch
         waveSpawnTimer = 0.5f;
         
-        printf("Starting Wave %d with %d enemies!\n", waveNumber, enemiesRemainingInWave);
+        LOG("Starting Wave %d with %d enemies!", waveNumber, enemiesRemainingInWave);
     }
 
     l1WasPressed = l1IsPressed;
@@ -365,7 +368,7 @@ void updateWorld() {
         // Set timer for next batch
         waveSpawnTimer = 1.0f;
         
-        printf("Spawned %d enemies. %d remaining in wave %d\n", 
+        LOG("Spawned %d enemies. %d remaining in wave %d", 
                batchSize, enemiesRemainingInWave, waveNumber);
     }
 
@@ -383,7 +386,7 @@ void updateWorld() {
             // Wave complete
             waveInProgress = false;
             waveCooldown = 5.0f; // 5 seconds until next wave can be started
-            printf("Wave %d complete! Next wave available in %.1f seconds\n", 
+            LOG("Wave %d complete! Next wave available in %.1f seconds", 
                    waveNumber, waveCooldown);
         }
     }
@@ -392,7 +395,7 @@ void updateWorld() {
     if (!waveInProgress && waveCooldown <= 0.0f) {
         static int readyCounter = 0;
         if (readyCounter++ % 60 == 0) { // Every ~60 frames
-            printf("Press L1 to start Wave %d!\n", waveNumber + 1);
+            LOG("Press L1 to start Wave %d!", waveNumber + 1);
         }
     } else if (waveInProgress) {
         static int statusCounter = 0;
@@ -405,7 +408,7 @@ void updateWorld() {
                 }
             }
             
-            printf("Wave %d in progress: %d enemies remaining, %d active\n", 
+            LOG("Wave %d in progress: %d enemies remaining, %d active", 
                    waveNumber, enemiesRemainingInWave, activeEnemies);
         }
     }
@@ -420,7 +423,7 @@ void renderWorld(float aspectRatio) {
     // Debug rendering state before clearing
     static bool debugOnce = true;
     if (debugOnce) {
-        printf("Before clear:\n");
+        LOG("Before clear:");
         debugRenderingIssue();
         debugOnce = false;
     }
@@ -607,7 +610,7 @@ void renderWorld(float aspectRatio) {
     // Debug after all rendering is complete
     static bool debugAfterRender = true;
     if (debugAfterRender) {
-        printf("After rendering:\n");
+        LOG("After rendering:");
         debugRenderingIssue();
         debugAfterRender = false;
     }
@@ -699,7 +702,7 @@ void cleanupWorld() {
     enemy_system_cleanup();
 }
 
-// Add this function at the end of the file, before cleanupWorld()
+// Function to debug rendering issues
 void debugRenderingIssue() {
     // Get viewport dimensions
     GLint viewport[4];
@@ -714,17 +717,17 @@ void debugRenderingIssue() {
     glGetBooleanv(GL_SCISSOR_TEST, &scissorEnabled);
     
     // Print debugging information
-    printf("=== Rendering Debug Info ===\n");
-    printf("Viewport: x=%d, y=%d, width=%d, height=%d\n", 
+    LOG("=== Rendering Debug Info ===");
+    LOG("Viewport: x=%d, y=%d, width=%d, height=%d", 
            viewport[0], viewport[1], viewport[2], viewport[3]);
-    printf("Scissor: x=%d, y=%d, width=%d, height=%d, enabled=%s\n", 
+    LOG("Scissor: x=%d, y=%d, width=%d, height=%d, enabled=%s", 
            scissor[0], scissor[1], scissor[2], scissor[3], 
            scissorEnabled ? "true" : "false");
     
     // Check for OpenGL errors
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
-        printf("OpenGL error: 0x%04x\n", err);
+        LOG("OpenGL error: 0x%04x", err);
     }
-    printf("===========================\n");
+    LOG("===========================");
 } 

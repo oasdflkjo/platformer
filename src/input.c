@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <GLFW/glfw3.h>
 #include "input.h"
+#include "logging.h"
+
+// Define this module for logging
+LOG_MODULE_DEFINE(__FILE__, false);
 
 // Store the window reference
 static GLFWwindow* g_window = NULL;
@@ -15,7 +19,7 @@ static bool previousButtonStates[16] = {false};
 // Initialize input system
 void initInput(GLFWwindow* window) {
     g_window = window;
-    // Additional initialization if needed
+    LOG("Input system initialized");
 }
 
 // Update input states
@@ -41,6 +45,7 @@ void updateInput() {
 // Check if a specific key is pressed
 int isKeyPressed(int key) {
     if (g_window == NULL) {
+        LOG("Window reference is NULL in isKeyPressed");
         return 0;
     }
     return glfwGetKey(g_window, key) == GLFW_PRESS;
@@ -70,11 +75,11 @@ void debugPrintJoystickInputs(int joystick) {
         // Print only pressed buttons
         for (int i = 0; i < buttonCount; ++i) {
             if (buttons[i] == GLFW_PRESS) {
-                // printf("Button %d: Pressed\n", i); // Removed print statement
+                LOG("Button %d: Pressed", i);
             }
         }
     } else {
-        // printf("Joystick not present.\n"); // Removed print statement
+        LOG("Joystick not present.");
     }
 }
 
@@ -99,25 +104,26 @@ bool isButtonPressed(int buttonID) {
     }
     
     if (buttonID < 0 || buttonID >= count) {
-        // printf("Invalid button ID: %d (max: %d)\n", buttonID, count-1);
+        LOG("Invalid button ID: %d (max: %d)", buttonID, count-1);
         return false;
     }
     
     return buttons[buttonID] == 1;
 }
 
-// Comment out or simplify the debug functions
+// Debug functions with logging
 void debugControllerButtons() {
-    // Debug function disabled
+    LOG("Controller buttons debug function called");
 }
 
 void debugAllControllerButtons() {
-    // Debug function disabled
+    LOG("All controller buttons debug function called");
 }
 
 // Check if a button was just pressed this frame (pressed now but not in previous frame)
 bool isButtonJustPressed(int button) {
     if (button < 0 || button >= 16) {
+        LOG("Invalid button ID in isButtonJustPressed: %d", button);
         return false; // Invalid button ID
     }
     
@@ -127,6 +133,7 @@ bool isButtonJustPressed(int button) {
 // Check if a button was just released this frame (not pressed now but was in previous frame)
 bool isButtonJustReleased(int button) {
     if (button < 0 || button >= 16) {
+        LOG("Invalid button ID in isButtonJustReleased: %d", button);
         return false; // Invalid button ID
     }
     

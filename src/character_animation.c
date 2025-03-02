@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "logging.h"
+
+// Define this module for logging
+LOG_MODULE_DEFINE(__FILE__, false);
 
 #ifdef _WIN32
 #include <windows.h>
@@ -25,7 +29,7 @@ int load_animation_frames(const char* basePath, char*** framePathsOut) {
     // First pass: count PNG files
     hFind = FindFirstFile(searchPath, &findData);
     if (hFind == INVALID_HANDLE_VALUE) {
-        printf("Failed to open directory: %s\n", basePath);
+        LOG("Failed to open directory: %s", basePath);
         return 0;
     }
     
@@ -75,7 +79,7 @@ int load_animation_frames(const char* basePath, char*** framePathsOut) {
     // Open the directory
     dir = opendir(basePath);
     if (!dir) {
-        printf("Failed to open directory: %s\n", basePath);
+        LOG("Failed to open directory: %s", basePath);
         return 0;
     }
     
@@ -155,7 +159,7 @@ void character_animator_init(CharacterAnimator* animator) {
         }
         free(framePaths);
     } else {
-        printf("Failed to load Idle animation\n");
+        LOG("Failed to load Idle animation");
     }
     
     // Run animation
@@ -172,7 +176,7 @@ void character_animator_init(CharacterAnimator* animator) {
         }
         free(framePaths);
     } else {
-        printf("Failed to load Run animation\n");
+        LOG("Failed to load Run animation");
     }
     
     // Jump animation
@@ -189,7 +193,7 @@ void character_animator_init(CharacterAnimator* animator) {
         }
         free(framePaths);
     } else {
-        printf("Failed to load Jump animation\n");
+        LOG("Failed to load Jump animation");
     }
     
     // Attack animation
@@ -197,12 +201,12 @@ void character_animator_init(CharacterAnimator* animator) {
     sprintf(attackPath, "%s/SwordSlash", basePath);
     frameCount = load_animation_frames(attackPath, &framePaths);
     if (frameCount > 0) {
-        printf("Loading attack animation with %d frames\n", frameCount);
+        LOG("Loading attack animation with %d frames", frameCount);
         sprite_init(&animator->animations[CHARACTER_STATE_ATTACK], 
                    (const char**)framePaths, frameCount, 0.2f, false);
         
         // Clone the attack animation for air attacks BEFORE freeing framePaths
-        printf("Setting up air attack animation with %d frames\n", frameCount);
+        LOG("Setting up air attack animation with %d frames", frameCount);
         sprite_init(&animator->animations[CHARACTER_STATE_AIR_ATTACK], 
                    (const char**)framePaths, frameCount, 0.2f, false);
         
@@ -212,7 +216,7 @@ void character_animator_init(CharacterAnimator* animator) {
         }
         free(framePaths);
     } else {
-        printf("Failed to load Attack animation from %s\n", attackPath);
+        LOG("Failed to load Attack animation from %s", attackPath);
         
         // Fallback: Create a simple 1-frame animation using the idle animation's first frame
         if (animator->animations[CHARACTER_STATE_IDLE].frameCount > 0) {
@@ -228,9 +232,9 @@ void character_animator_init(CharacterAnimator* animator) {
     // Load other animations as needed...
     
     // After loading all animations
-    printf("Animation states loaded:\n");
+    LOG("Animation states loaded:");
     for (int i = 0; i < CHARACTER_STATE_COUNT; i++) {
-        printf("State %d: %d frames, loop: %s\n", 
+        LOG("State %d: %d frames, loop: %s", 
                i, animator->animations[i].frameCount, 
                animator->animations[i].loop ? "yes" : "no");
     }
@@ -240,7 +244,7 @@ void character_animator_init(CharacterAnimator* animator) {
 void character_animator_update(CharacterAnimator* animator, CharacterState newState, float deltaTime) {
     // Safety check for invalid state
     if (newState < 0 || newState >= CHARACTER_STATE_COUNT) {
-        printf("Warning: Invalid character state requested: %d\n", newState);
+        LOG("Warning: Invalid character state requested: %d", newState);
         newState = CHARACTER_STATE_IDLE;
     }
     
@@ -253,7 +257,13 @@ void character_animator_update(CharacterAnimator* animator, CharacterState newSt
         currentSprite->timer >= currentSprite->frameDuration) {
         // Animation has finished
         animationFinished = true;
-        printf("Animation %d finished\n", animator->currentState);
+        
+        // Only log the first time an animation finishes
+        static CharacterState lastFinishedState = -1;
+        if (animator->currentState != lastFinishedState) {
+            LOG("Animation %d finished", animator->currentState);
+            lastFinishedState = animator->currentState;
+        }
     }
     
     // If we're in an attack state and the animation finished, go back to idle
@@ -268,26 +278,31 @@ void character_animator_update(CharacterAnimator* animator, CharacterState newSt
     // When starting an attack animation
     if (newState == CHARACTER_STATE_ATTACK && animator->currentState != CHARACTER_STATE_ATTACK) {
         attackInProgress = true;
-        printf("Attack started!\n");
+        LOG("Attack started!");
     }
     
     // When attack animation finishes
     if (attackInProgress && animationFinished) {
         attackInProgress = false;
-        printf("Attack completed!\n");
+        LOG("Attack completed!");
     }
     
     // Prevent state changes during attack animation
     if (attackInProgress && !animationFinished && 
         newState != CHARACTER_STATE_ATTACK && newState != CHARACTER_STATE_AIR_ATTACK) {
         // Don't allow changing state until attack animation completes
-        printf("Preventing state change during attack\n");
+        // Only log this once when the state change is first attempted
+        static CharacterState lastAttemptedState = -1;
+        if (newState != lastAttemptedState) {
+            LOG("Preventing state change to %d during attack", newState);
+            lastAttemptedState = newState;
+        }
         newState = animator->currentState;
     }
     
     // If state changed, reset state time
     if (newState != animator->currentState) {
-        printf("Animation state changing from %d to %d\n", animator->currentState, newState);
+        LOG("Animation state changing from %d to %d", animator->currentState, newState);
         
         // Safety check - make sure the new animation exists
         if (animator->animations[newState].frameCount > 0) {
@@ -299,10 +314,10 @@ void character_animator_update(CharacterAnimator* animator, CharacterState newSt
             currentSprite->currentFrame = 0;
             currentSprite->timer = 0.0f;
             
-            printf("Animation started: %d with %d frames\n", 
+            LOG("Animation started: %d with %d frames", 
                    newState, animator->animations[newState].frameCount);
         } else {
-            printf("Warning: Tried to switch to uninitialized animation state: %d\n", newState);
+            LOG("Warning: Tried to switch to uninitialized animation state: %d", newState);
         }
     } else {
         animator->stateTime += deltaTime;
@@ -311,17 +326,15 @@ void character_animator_update(CharacterAnimator* animator, CharacterState newSt
     // Update the current animation
     sprite_update(&animator->animations[animator->currentState], deltaTime);
     
-    // Comment out or remove these debug prints
-    // printf("Animation state: frame=%d/%d, timer=%.3f/%.3f, loop=%d\n",
-    //        currentSprite->currentFrame + 1, currentSprite->frameCount,
-    //        currentSprite->timer, currentSprite->frameDuration,
-    //        currentSprite->loop);
-    
-    // Print current animation frame for attack animations
-    if (animator->currentState == CHARACTER_STATE_ATTACK || 
-        animator->currentState == CHARACTER_STATE_AIR_ATTACK) {
-        printf("Attack animation frame: %d/%d\n", 
-               animator->animations[animator->currentState].currentFrame + 1,
+    // Only log attack animation frame changes, not every frame
+    static int lastLoggedFrame = -1;
+    if ((animator->currentState == CHARACTER_STATE_ATTACK || 
+         animator->currentState == CHARACTER_STATE_AIR_ATTACK) && 
+        lastLoggedFrame != animator->animations[animator->currentState].currentFrame) {
+        
+        lastLoggedFrame = animator->animations[animator->currentState].currentFrame;
+        LOG("Attack animation frame changed to: %d/%d", 
+               lastLoggedFrame + 1,
                animator->animations[animator->currentState].frameCount);
     }
 }
@@ -338,7 +351,7 @@ void character_animator_render(CharacterAnimator* animator, Shader* shader, vec3
         sprite_render_grounded(&animator->animations[animator->currentState], 
                               shader, position, actualScale);
     } else {
-        printf("Warning: Tried to render invalid animation state: %d\n", animator->currentState);
+        LOG("Warning: Tried to render invalid animation state: %d", animator->currentState);
         // Fallback to idle animation
         if (animator->currentState != CHARACTER_STATE_IDLE && 
             animator->animations[CHARACTER_STATE_IDLE].frameCount > 0) {

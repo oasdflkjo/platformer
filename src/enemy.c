@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "logging.h"
+LOG_MODULE_DEFINE(__FILE__, false);
+
 // For getcwd function
 #ifdef _WIN32
 #include <direct.h>
@@ -35,6 +38,7 @@ static float enemyHitFlashTime[MAX_ENEMIES] = {0};
 // Add these at the top of the file
 static float lastPlayerX = 0.0f;
 static float lastPlayerZ = 0.0f;
+
 
 // Initialize the enemy system
 void enemy_system_init(void) {
@@ -106,14 +110,14 @@ void spawn_enemy(float x, float y, float z) {
             enemies[i].active = true;
             enemies[i].textureID = enemyTextureID;
             
-            printf("Spawned enemy %d at (%.2f, %.2f, %.2f)\n", i, x, enemies[i].y, z);
+            LOG("Spawned enemy %d at (%.2f, %.2f, %.2f)", i, x, enemies[i].y, z);
             
             return;
         }
     }
     
     // If we get here, all enemies are active
-    printf("Warning: No free enemies available!\n");
+    LOG("Warning: No free enemies available!");
 }
 
 // Update all enemies
@@ -125,7 +129,7 @@ void update_enemies(float deltaTime, float playerX, float playerZ) {
     // Debug output for player position
     static int debugCounter = 0;
     if (debugCounter++ % 60 == 0) { // Print every ~60 frames
-        printf("Player position: (%.2f, %.2f, %.2f)\n", playerX, GROUND_LEVEL, playerZ);
+        LOG("Player position: (%.2f, %.2f, %.2f)", playerX, GROUND_LEVEL, playerZ);
     }
 
     for (int i = 0; i < MAX_ENEMIES; i++) {
@@ -137,7 +141,7 @@ void update_enemies(float deltaTime, float playerX, float playerZ) {
             
             // Debug output for enemy position and movement
             if (i == 0 && debugCounter % 60 == 0) { // Print for first enemy every ~60 frames
-                printf("Enemy %d: pos=(%.2f, %.2f, %.2f), dist=%.2f, dx=%.2f, dz=%.2f\n", 
+                LOG("Enemy %d: pos=(%.2f, %.2f, %.2f), dist=%.2f, dx=%.2f, dz=%.2f", 
                        i, enemies[i].x, enemies[i].y, enemies[i].z, distance, dx, dz);
             }
             
@@ -152,7 +156,7 @@ void update_enemies(float deltaTime, float playerX, float playerZ) {
                 
                 // Debug output for velocity
                 if (i == 0 && debugCounter % 60 == 0) {
-                    printf("Enemy %d velocity: (%.4f, %.4f)\n", i, enemies[i].velocityX, enemies[i].velocityZ);
+                    LOG("Enemy %d velocity: (%.4f, %.4f)", i, enemies[i].velocityX, enemies[i].velocityZ);
                 }
                 
                 // Update position
@@ -164,7 +168,7 @@ void update_enemies(float deltaTime, float playerX, float playerZ) {
                 
                 // Debug output for position change
                 if (i == 0 && debugCounter % 60 == 0) {
-                    printf("Enemy %d moved: (%.2f, %.2f) -> (%.2f, %.2f), delta=(%.4f, %.4f)\n", 
+                    LOG("Enemy %d moved: (%.2f, %.2f) -> (%.2f, %.2f), delta=(%.4f, %.4f)", 
                            i, oldX, oldZ, enemies[i].x, enemies[i].z, 
                            enemies[i].x - oldX, enemies[i].z - oldZ);
                 }
@@ -177,14 +181,14 @@ void update_enemies(float deltaTime, float playerX, float playerZ) {
                 enemies[i].velocityZ = 0.0f;
                 
                 if (i == 0 && debugCounter % 60 == 0) {
-                    printf("Enemy %d too close to player, stopped moving\n", i);
+                    LOG("Enemy %d too close to player, stopped moving", i);
                 }
             }
             
             // Check if enemy is dead
             if (enemies[i].health <= 0) {
                 enemies[i].active = false;
-                printf("Enemy %d defeated!\n", i);
+                LOG("Enemy %d defeated!", i);
             }
         }
     }
@@ -298,7 +302,7 @@ void check_enemy_projectile_collisions(void) {
                 // Set flash effect timer
                 enemyHitFlashTime[i] = 0.2f; // Flash for 0.2 seconds
                 
-                printf("Enemy %d hit! Health: %.1f\n", i, enemies[i].health);
+                LOG("Enemy %d hit! Health: %.1f", i, enemies[i].health);
             }
         }
     }

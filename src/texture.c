@@ -5,6 +5,10 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "../external/stb/stb_image.h"
+#include "logging.h"
+
+// Define this module for logging
+LOG_MODULE_DEFINE(__FILE__, false);
 
 // BMP file header structure
 #pragma pack(push, 1)
@@ -33,7 +37,7 @@ typedef struct {
 unsigned int texture_load_bmp(const char* path) {
     FILE* file = fopen(path, "rb");
     if (!file) {
-        printf("Failed to open BMP file: %s\n", path);
+        LOG("Failed to open BMP file: %s", path);
         return 0;
     }
     
@@ -43,7 +47,7 @@ unsigned int texture_load_bmp(const char* path) {
     
     // Check if it's a valid BMP file
     if (header.signature[0] != 'B' || header.signature[1] != 'M') {
-        printf("Not a valid BMP file: %s\n", path);
+        LOG("Not a valid BMP file: %s", path);
         fclose(file);
         return 0;
     }
@@ -54,7 +58,7 @@ unsigned int texture_load_bmp(const char* path) {
     
     // Check if it's a supported format (24 or 32 bits per pixel)
     if (infoHeader.bitsPerPixel != 24 && infoHeader.bitsPerPixel != 32) {
-        printf("Unsupported BMP format (only 24 or 32 bpp supported): %s\n", path);
+        LOG("Unsupported BMP format (only 24 or 32 bpp supported): %s", path);
         fclose(file);
         return 0;
     }
@@ -65,7 +69,7 @@ unsigned int texture_load_bmp(const char* path) {
     // Allocate memory for the image data
     unsigned char* data = (unsigned char*)malloc(rowSize * abs(infoHeader.height));
     if (!data) {
-        printf("Failed to allocate memory for BMP data: %s\n", path);
+        LOG("Failed to allocate memory for BMP data: %s", path);
         fclose(file);
         return 0;
     }
@@ -130,12 +134,12 @@ void texture_print_info(unsigned int textureID) {
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
     
-    printf("Texture ID: %u, Width: %d, Height: %d\n", textureID, width, height);
+    LOG("Texture ID: %u, Width: %d, Height: %d", textureID, width, height);
 }
 
 // Function to load a PNG texture
 unsigned int texture_load_png(const char* path) {
-    printf("Loading PNG texture: %s\n", path);
+    LOG("Loading PNG texture: %s", path);
     
     int width, height, nrChannels;
     unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
@@ -159,11 +163,11 @@ unsigned int texture_load_png(const char* path) {
         // Free image data
         stbi_image_free(data);
         
-        printf("Loaded PNG texture: %s (ID: %u, Size: %dx%d)\n", path, textureID, width, height);
+        LOG("Loaded PNG texture: %s (ID: %u, Size: %dx%d)", path, textureID, width, height);
         
         return textureID;
     } else {
-        printf("Failed to load PNG texture: %s\n", path);
+        LOG("Failed to load PNG texture: %s", path);
         return 0;
     }
 }
@@ -217,7 +221,7 @@ unsigned int create_test_texture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
-    printf("Created test checkerboard texture (ID: %u)\n", textureID);
+    LOG("Created test checkerboard texture (ID: %u)", textureID);
     
     return textureID;
 }
@@ -227,7 +231,7 @@ unsigned int texture_load(const char* path) {
     // Check file extension to determine which loader to use
     const char* extension = strrchr(path, '.');
     if (!extension) {
-        printf("Error: Could not determine file extension for %s\n", path);
+        LOG("Error: Could not determine file extension for %s", path);
         return 0;
     }
     
@@ -249,7 +253,7 @@ unsigned int texture_load(const char* path) {
         int width, height, channels;
         unsigned char* data = stbi_load(path, &width, &height, &channels, 0);
         if (!data) {
-            printf("Failed to load texture: %s\n", path);
+            LOG("Failed to load texture: %s", path);
             return 0;
         }
         
@@ -273,7 +277,7 @@ unsigned int texture_load(const char* path) {
         else if (channels == 4)
             format = GL_RGBA;
         else {
-            printf("Unsupported number of channels: %d\n", channels);
+            LOG("Unsupported number of channels: %d", channels);
             stbi_image_free(data);
             return 0;
         }
