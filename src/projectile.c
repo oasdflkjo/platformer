@@ -3,6 +3,10 @@
 #include "texture.h"
 #include <stdio.h>
 #include <math.h>
+#include "logging.h"
+
+// Define this module for logging
+LOG_MODULE_DEFINE(__FILE__, false);
 
 // Function declarations
 void create_projectile_model(void);
@@ -34,7 +38,7 @@ void projectile_system_init(void) {
     daggerTextureID = texture_load_png("assets/Terrible Knight/Projectiles/dagger.png");
     
     if (daggerTextureID == 0) {
-        printf("Failed to load dagger texture!\n");
+        LOG("Failed to load dagger texture!");
     }
     
     // Create a 3D model for the projectile
@@ -148,7 +152,7 @@ void update_projectiles(float deltaTime) {
 // Render all projectiles
 void render_projectiles(Shader* shader) {
     if (projectileVAO == 0) {
-        printf("Error: Projectile system not initialized!\n");
+        LOG("Error: Projectile system not initialized!");
         return;
     }
     
@@ -300,5 +304,5 @@ void handle_projectile_collision(int projectileIndex) {
     // They continue to orbit and can hit multiple enemies
     
     // You could add visual effects here, like a small flash or particle effect
-    printf("Projectile %d hit something!\n", projectileIndex);
+    LOG("Projectile %d hit something!", projectileIndex);
 } 
