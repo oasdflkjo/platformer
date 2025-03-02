@@ -234,11 +234,12 @@ void sprite_render_grounded(Sprite* sprite, Shader* shader, vec3 position, float
     // Calculate the height offset to place the bottom of the sprite at the ground
     float heightOffset = 0.0f;
     
-    // If we know the sprite's dimensions, we can calculate the exact offset
-    // heightOffset = (sprite->height * scale) / 2.0f;
+    // Calculate aspect ratio for proper scaling
+    float aspectRatio = 0.75f; // Typical height:width ratio (e.g., 3:4)
     
     // For now, use a fixed offset that works well with your sprites
-    heightOffset = 0.5f * fabsf(scale); // Use absolute scale value for offset
+    // Adjust for the aspect ratio we're using
+    heightOffset = 0.5f * fabsf(scale) * aspectRatio;
     
     // Create a new position with the adjusted height
     vec3 adjustedPos;

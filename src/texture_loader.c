@@ -1,4 +1,6 @@
 #include "texture_loader.h"
+// Define this macro BEFORE including the header
+#define STB_IMAGE_IMPLEMENTATION
 #include "../external/stb/stb_image.h"
 #include <glad/glad.h> // For OpenGL functions
 
