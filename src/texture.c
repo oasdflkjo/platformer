@@ -1,10 +1,10 @@
 #include "../inc/texture.h"
-#include "../inc/png_decoder.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include "../external/stb/stb_image.h"
 
 // BMP file header structure
 #pragma pack(push, 1)
@@ -137,39 +137,35 @@ void texture_print_info(unsigned int textureID) {
 unsigned int texture_load_png(const char* path) {
     printf("Loading PNG texture: %s\n", path);
     
-    Image* image = load_image(path);
-    if (!image) {
-        printf("Failed to decode PNG: %s\n", path);
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+    
+    if (data) {
+        // Create OpenGL texture
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        
+        // Set texture parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        
+        // Upload texture data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        
+        // Free image data
+        stbi_image_free(data);
+        
+        printf("Loaded PNG texture: %s (ID: %u, Size: %dx%d)\n", path, textureID, width, height);
+        
+        return textureID;
+    } else {
+        printf("Failed to load PNG texture: %s\n", path);
         return 0;
     }
-    
-    // Use the image data
-    unsigned char* data = image->data;
-    int width = image->width;
-    int height = image->height;
-    int channels = image->channels;
-    
-    // Create OpenGL texture
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    
-    // Set texture parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    // Upload texture data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    
-    // Free memory
-    free_image(image);
-    
-    printf("Loaded PNG texture: %s (ID: %u, Size: %dx%d)\n", path, textureID, width, height);
-    
-    return textureID;
 }
 
 // Create a simple test texture with a clear pattern

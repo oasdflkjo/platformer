@@ -145,11 +145,10 @@ void updateWorld() {
     float deltaTime = (float)(currentTime - lastFrameTime);
     lastFrameTime = currentTime;
 
-    // Debug output for deltaTime
-    static int timeDebugCounter = 0;
-    if (timeDebugCounter++ % 60 == 0) {
+    // Replace frequent debug prints with conditional compilation
+    #ifdef DEBUG_MODE
         printf("Delta time: %.6f seconds\n", deltaTime);
-    }
+    #endif
     
     // Get controller input
     int count;
@@ -400,53 +399,6 @@ void updateWorld() {
                    waveNumber, waveCooldown);
         }
     }
-
-    // Update enemy spawn timer
-    enemySpawnTimer -= deltaTime;
-
-    // Spawn enemies periodically
-    if (enemySpawnTimer <= 0.0f) {
-        // Reset timer
-        enemySpawnTimer = ENEMY_SPAWN_INTERVAL;
-        
-        // Spawn 2-4 enemies at random positions around the grid edges
-        int numToSpawn = 2 + rand() % 3;
-        
-        for (int i = 0; i < numToSpawn; i++) {
-            // Choose a random edge (0=top, 1=right, 2=bottom, 3=left)
-            int edge = rand() % 4;
-            
-            float gridSize = 15.0f; // Larger grid size for spawning from farther away
-            float enemyX, enemyZ;
-            
-            switch (edge) {
-                case 0: // Top edge
-                    enemyX = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-                    enemyZ = -gridSize;
-                    break;
-                case 1: // Right edge
-                    enemyX = gridSize;
-                    enemyZ = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-                    break;
-                case 2: // Bottom edge
-                    enemyX = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-                    enemyZ = gridSize;
-                    break;
-                case 3: // Left edge
-                    enemyX = -gridSize;
-                    enemyZ = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-                    break;
-            }
-            
-            // Spawn the enemy
-            printf("Spawning enemy at (%.2f, %.2f, %.2f), distance from player: %.2f\n", 
-                   enemyX, GROUND_LEVEL, enemyZ, 
-                   sqrtf((enemyX - player.x) * (enemyX - player.x) + (enemyZ - player.z) * (enemyZ - player.z)));
-            spawn_enemy(enemyX, GROUND_LEVEL, enemyZ);
-        }
-        
-        printf("Spawned %d new enemies\n", numToSpawn);
-    }
 }
 
 // Function to render the game world
@@ -575,13 +527,6 @@ void renderWorld(float aspectRatio) {
     // Set up view and projection for sprite shader
     shader_set_mat4(&spriteShader, "view", view);
     shader_set_mat4(&spriteShader, "projection", projection);
-    
-    // Add texture wrapping and filtering settings to fix the black line
-    // This should be done before rendering the sprite
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
     // Add a visual flash effect during attacks
     if (player.animator.currentState == CHARACTER_STATE_ATTACK || 
@@ -765,4 +710,36 @@ void debugRenderingIssue() {
         printf("OpenGL error: 0x%04x\n", err);
     }
     printf("===========================\n");
+}
+
+// Add this function to consolidate enemy spawning logic
+void spawn_enemy_at_edge(float gridSize) {
+    // Choose a random edge (0=top, 1=right, 2=bottom, 3=left)
+    int edge = rand() % 4;
+    
+    float enemyX, enemyZ;
+    
+    switch (edge) {
+        case 0: // Top edge
+            enemyX = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
+            enemyZ = -gridSize;
+            break;
+        case 1: // Right edge
+            enemyX = gridSize;
+            enemyZ = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
+            break;
+        case 2: // Bottom edge
+            enemyX = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
+            enemyZ = gridSize;
+            break;
+        case 3: // Left edge
+            enemyX = -gridSize;
+            enemyZ = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
+            break;
+    }
+    
+    // Spawn the enemy
+    spawn_enemy(enemyX, GROUND_LEVEL, enemyZ);
+    
+    return;
 } 
