@@ -57,6 +57,7 @@ GLFWwindow* getWindow(void);
 #define BUTTON_CIRCLE   2  // Circle button on PS5 controller
 #define BUTTON_SQUARE   0  // Square button on PS5 controller
 #define BUTTON_TRIANGLE 3  // Triangle button on PS5 controller
+#define BUTTON_L1       4  // Same as BUTTON_LB for Xbox controllers
 
 // Check if a button was just pressed this frame
 bool isButtonJustPressed(int button);

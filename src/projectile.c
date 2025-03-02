@@ -176,22 +176,9 @@ void render_projectiles(Shader* shader) {
                 // For orbit mode, rotate based on orbit angle
                 glm_rotate(model, projectiles[i].rotation, (vec3){0.0f, 1.0f, 0.0f});
             } else {
-                // For regular projectiles, rotate based on direction
-                if (projectiles[i].velocityX > 0.01f) {
-                    // Right - no rotation needed
-                } 
-                else if (projectiles[i].velocityX < -0.01f) {
-                    // Left - rotate 180 degrees
-                    glm_rotate(model, M_PI, (vec3){0.0f, 1.0f, 0.0f});
-                }
-                else if (projectiles[i].velocityZ > 0.01f) {
-                    // Up - rotate 270 degrees
-                    glm_rotate(model, -M_PI_2, (vec3){0.0f, 1.0f, 0.0f});
-                }
-                else if (projectiles[i].velocityZ < -0.01f) {
-                    // Down - rotate 90 degrees
-                    glm_rotate(model, M_PI_2, (vec3){0.0f, 1.0f, 0.0f});
-                }
+                // Calculate rotation from velocity
+                float angle = atan2f(projectiles[i].velocityZ, projectiles[i].velocityX);
+                glm_rotate(model, angle, (vec3){0.0f, 1.0f, 0.0f});
             }
             
             // Scale
