@@ -2,6 +2,7 @@
 #define INPUT_H
 
 #include <stdbool.h>
+#include <GLFW/glfw3.h>
 
 // Button definitions
 #define BUTTON_CROSS     0
@@ -26,7 +27,7 @@
 // Function declarations
 bool isButtonPressed(int button);
 const float* getControllerAxes(int* count);
-void initInput(void);
+void initInput(GLFWwindow* window);
 void updateInput(void);
 void cleanupInput(void);
 

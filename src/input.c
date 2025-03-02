@@ -27,7 +27,7 @@ void updateInput() {
     
     // Update current button states
     int count;
-    const unsigned char* buttons = getJoystickButtons(GLFW_JOYSTICK_1, &count);
+    const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
     if (buttons && count > 0) {
         for (int i = 0; i < count && i < 16; i++) {
             currentButtonStates[i] = buttons[i] == GLFW_PRESS;
