@@ -205,9 +205,9 @@ void render_enemies(Shader* shader) {
         }
     }
     
-    if (activeCount > 0) {
-        printf("Rendering %d active enemies\n", activeCount);
-    }
+    //if (activeCount > 0) {
+    //    printf("Rendering %d active enemies\n", activeCount);
+    //}
     
     // Bind the VAO
     glBindVertexArray(enemyVAO);

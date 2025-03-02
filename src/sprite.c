@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include "texture.h"
+#include "logging.h"
+
+// Define this module for logging
+LOG_MODULE_DEFINE("sprite", true);
 
 // Initialize a sprite with animation frames
 void sprite_init(Sprite* sprite, const char** texturePaths, int frameCount, float frameTime, bool loop) {
@@ -20,7 +24,7 @@ void sprite_init(Sprite* sprite, const char** texturePaths, int frameCount, floa
     // Load textures for each frame
     for (int i = 0; i < frameCount; i++) {
         sprite->textureIDs[i] = texture_load_png(texturePaths[i]);
-        printf("Loaded sprite texture %d/%d: %s (ID: %u)\n", 
+        LOG_INFO("Loaded sprite texture %d/%d: %s (ID: %u)", 
                i+1, frameCount, texturePaths[i], sprite->textureIDs[i]);
     }
     
@@ -93,9 +97,8 @@ void sprite_update(Sprite* sprite, float deltaTime) {
         // Reset timer but keep any excess time for smoother animation
         sprite->timer = fmodf(sprite->timer, sprite->frameDuration);
         
-        // Comment out or remove this debug print
-        // printf("Advanced to frame %d/%d (timer reset to %.3f)\n", 
-        //        sprite->currentFrame + 1, sprite->frameCount, sprite->timer);
+        LOG_TRACE("Advanced to frame %d/%d (timer reset to %.3f)", 
+               sprite->currentFrame + 1, sprite->frameCount, sprite->timer);
     }
 }
 
@@ -103,10 +106,9 @@ void sprite_update(Sprite* sprite, float deltaTime) {
 void sprite_render(Sprite* sprite, Shader* shader, vec3 position, float scale) {
     shader_use(shader);
     
-    // Debug output (you can comment this out for less console spam)
-    // printf("Rendering sprite at position (%.2f, %.2f, %.2f) with scale %.2f, frame %d/%d\n", 
-    //       position[0], position[1], position[2], scale, 
-    //       sprite->currentFrame + 1, sprite->frameCount);
+    LOG_TRACE("Rendering sprite at position (%.2f, %.2f, %.2f) with scale %.2f, frame %d/%d", 
+           position[0], position[1], position[2], scale, 
+           sprite->currentFrame + 1, sprite->frameCount);
     
     // Enable blending
     glEnable(GL_BLEND);
@@ -165,6 +167,8 @@ void sprite_cleanup(Sprite* sprite) {
     
     // Free the texture IDs array
     free(sprite->textureIDs);
+    
+    LOG_DEBUG("Sprite resources cleaned up");
 }
 
 // Initialize a sprite with a pre-created texture
@@ -183,7 +187,7 @@ void sprite_init_with_texture(Sprite* sprite, const char** texturePaths, int fra
     // Use the provided texture for all frames
     for (int i = 0; i < frameCount; i++) {
         sprite->textureIDs[i] = textureID;
-        printf("Using provided texture for frame %d/%d (ID: %u)\n", 
+        LOG_INFO("Using provided texture for frame %d/%d (ID: %u)", 
                i+1, frameCount, textureID);
     }
     
@@ -245,6 +249,9 @@ void sprite_render_grounded(Sprite* sprite, Shader* shader, vec3 position, float
     vec3 adjustedPos;
     glm_vec3_copy(position, adjustedPos);
     adjustedPos[1] += heightOffset;
+    
+    LOG_TRACE("Rendering grounded sprite at adjusted position (%.2f, %.2f, %.2f)", 
+           adjustedPos[0], adjustedPos[1], adjustedPos[2]);
     
     // Call the regular sprite_render with the adjusted position
     sprite_render(sprite, shader, adjustedPos, scale);

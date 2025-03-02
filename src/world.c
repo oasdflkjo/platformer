@@ -78,10 +78,6 @@ static float waveSpawnTimer = 0.0f;
 static float waveCooldown = 0.0f;
 static bool waveInProgress = false;
 
-// Add these variables at the top of the file
-static float enemySpawnTimer = 0.0f;
-static const float ENEMY_SPAWN_INTERVAL = 1.0f; // Spawn enemies every 1 second
-
 // Add these function declarations at the top
 void set_projectile_orbit_mode(bool enabled);
 void update_orbit_center(float x, float z);
@@ -144,11 +140,6 @@ void updateWorld() {
     double currentTime = glfwGetTime();
     float deltaTime = (float)(currentTime - lastFrameTime);
     lastFrameTime = currentTime;
-
-    // Replace frequent debug prints with conditional compilation
-    #ifdef DEBUG_MODE
-        printf("Delta time: %.6f seconds\n", deltaTime);
-    #endif
     
     // Get controller input
     int count;
@@ -342,7 +333,7 @@ void updateWorld() {
             // Choose a random edge (0=top, 1=right, 2=bottom, 3=left)
             int edge = rand() % 4;
             
-            float gridSize = 15.0f; // Larger grid size for spawning from farther away
+            float gridSize = 20.0f; // Match the grid size from initGrid
             float enemyX, enemyZ;
             
             switch (edge) {
@@ -365,9 +356,6 @@ void updateWorld() {
             }
             
             // Spawn the enemy
-            printf("Spawning enemy at (%.2f, %.2f, %.2f), distance from player: %.2f\n", 
-                   enemyX, GROUND_LEVEL, enemyZ, 
-                   sqrtf((enemyX - player.x) * (enemyX - player.x) + (enemyZ - player.z) * (enemyZ - player.z)));
             spawn_enemy(enemyX, GROUND_LEVEL, enemyZ);
             
             // Decrease remaining enemies
@@ -397,6 +385,28 @@ void updateWorld() {
             waveCooldown = 5.0f; // 5 seconds until next wave can be started
             printf("Wave %d complete! Next wave available in %.1f seconds\n", 
                    waveNumber, waveCooldown);
+        }
+    }
+
+    // Display wave status
+    if (!waveInProgress && waveCooldown <= 0.0f) {
+        static int readyCounter = 0;
+        if (readyCounter++ % 60 == 0) { // Every ~60 frames
+            printf("Press L1 to start Wave %d!\n", waveNumber + 1);
+        }
+    } else if (waveInProgress) {
+        static int statusCounter = 0;
+        if (statusCounter++ % 120 == 0) { // Every ~120 frames
+            // Count active enemies
+            int activeEnemies = 0;
+            for (int i = 0; i < MAX_ENEMIES; i++) {
+                if (is_enemy_active(i)) {
+                    activeEnemies++;
+                }
+            }
+            
+            printf("Wave %d in progress: %d enemies remaining, %d active\n", 
+                   waveNumber, enemiesRemainingInWave, activeEnemies);
         }
     }
 }
@@ -528,6 +538,13 @@ void renderWorld(float aspectRatio) {
     shader_set_mat4(&spriteShader, "view", view);
     shader_set_mat4(&spriteShader, "projection", projection);
     
+    // Add texture wrapping and filtering settings to fix the black line
+    // This should be done before rendering the sprite
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
     // Add a visual flash effect during attacks
     if (player.animator.currentState == CHARACTER_STATE_ATTACK || 
         player.animator.currentState == CHARACTER_STATE_AIR_ATTACK) {
@@ -569,11 +586,11 @@ void renderWorld(float aspectRatio) {
     vec3 playerPos = {player.x, player.y + 0.01f, player.z}; // Slightly raise the player
     
     // Print sprite information
-    printf("Drawing sprite at position: x=%.2f, y=%.2f, z=%.2f\n", 
-           player.x, player.y, player.z);
-    printf("Current animation state: %d, frame: %d\n", 
-           player.animator.currentState, 
-           player.animator.animations[player.animator.currentState].currentFrame);
+    //printf("Drawing sprite at position: x=%.2f, y=%.2f, z=%.2f\n", 
+    //       player.x, player.y, player.z);
+    //printf("Current animation state: %d, frame: %d\n", 
+    //       player.animator.currentState, 
+    //       player.animator.animations[player.animator.currentState].currentFrame);
 
     // Add a custom flag to the sprite shader to fix the black line
     shader_set_bool(&spriteShader, "clampTexture", true);
@@ -710,36 +727,4 @@ void debugRenderingIssue() {
         printf("OpenGL error: 0x%04x\n", err);
     }
     printf("===========================\n");
-}
-
-// Add this function to consolidate enemy spawning logic
-void spawn_enemy_at_edge(float gridSize) {
-    // Choose a random edge (0=top, 1=right, 2=bottom, 3=left)
-    int edge = rand() % 4;
-    
-    float enemyX, enemyZ;
-    
-    switch (edge) {
-        case 0: // Top edge
-            enemyX = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-            enemyZ = -gridSize;
-            break;
-        case 1: // Right edge
-            enemyX = gridSize;
-            enemyZ = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-            break;
-        case 2: // Bottom edge
-            enemyX = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-            enemyZ = gridSize;
-            break;
-        case 3: // Left edge
-            enemyX = -gridSize;
-            enemyZ = ((float)rand() / RAND_MAX) * (gridSize * 2) - gridSize;
-            break;
-    }
-    
-    // Spawn the enemy
-    spawn_enemy(enemyX, GROUND_LEVEL, enemyZ);
-    
-    return;
 } 
